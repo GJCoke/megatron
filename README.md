@@ -40,8 +40,8 @@ Install the following tools before proceeding:
 
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/your-username/visual-automation-platform.git
-   cd visual-automation-platform
+   git clone https://github.com/GJCoke/megatron.git
+   cd megatron
    ```
 
 2. **Set Up the Backend**:
@@ -122,6 +122,8 @@ For questions or issues, please open an issue in this repository or contact the 
 This platform leverages the power of:
 - [Appium](https://appium.io)
 - [Selenium](https://www.selenium.dev)
+- [SoybeanAdmin](https://docs.soybeanjs.cn)
+- [FastAPI](https://fastapi.tiangolo.com)
 
 Thank you to the open-source community for providing these fantastic tools.
 

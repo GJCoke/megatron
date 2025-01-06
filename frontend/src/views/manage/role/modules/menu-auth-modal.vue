@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { shallowRef, watch } from "vue"
+import { shallowRef, watch, ref } from "vue"
 import { editRolePermissionInfo, fetchGetMenuTree } from "@/service/api"
 import { addIsLeafToTreeNodes } from "@/utils/common"
 
@@ -55,6 +55,40 @@ async function handleSubmit() {
   }
 }
 
+/** 获取所有节点的 key 值 */
+function getAllKeys(nodes: SystemManage.MenuTree[]) {
+  const keys: number[] = []
+
+  const traverse = (nodeList: SystemManage.MenuTree[]) => {
+    nodeList.forEach((node) => {
+      keys.push(node.id)
+
+      if (node.children) {
+        traverse(node.children)
+      }
+    })
+  }
+  traverse(nodes)
+  return keys
+}
+
+const checkText = ref<string>("全选")
+
+/** 全选 */
+function checkAll() {
+  checks.value = getAllKeys(tree.value)
+}
+
+/** 取消全选 */
+function uncheckAll() {
+  checks.value = []
+}
+
+function handleUpdateChecked(value: boolean) {
+  value ? checkAll() : uncheckAll()
+  checkText.value = !value ? "全选" : "取消全选"
+}
+
 function init() {
   getTree()
   getChecks()
@@ -69,6 +103,9 @@ watch(visible, (val) => {
 
 <template>
   <NModal v-model:show="visible" title="编辑菜单权限" preset="card" class="w-480px">
+    <div class="mb-4 border-b p-2">
+      <NCheckbox @update:checked="handleUpdateChecked">{{ checkText }}</NCheckbox>
+    </div>
     <NTree
       v-model:checked-keys="checks"
       :data="addIsLeafToTreeNodes(tree)"

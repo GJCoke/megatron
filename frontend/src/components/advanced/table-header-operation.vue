@@ -7,9 +7,15 @@ interface Props {
   itemAlign?: NaiveUI.Align
   disabledDelete?: boolean
   loading?: boolean
+  canBatchDelete?: boolean
+  canAdd?: boolean
 }
 
-defineProps<Props>()
+withDefaults(defineProps<Props>(), {
+  canBatchDelete: true,
+  canAdd: true,
+  itemAlign: undefined
+})
 
 interface Emits {
   (e: "add"): void
@@ -36,13 +42,13 @@ function refresh() {
   <NSpace :align="itemAlign" wrap justify="end" class="lt-sm:w-200px">
     <slot name="prefix"></slot>
     <slot name="default">
-      <NButton size="small" ghost type="primary" @click="add">
+      <NButton v-if="canAdd" size="small" ghost type="primary" @click="add">
         <template #icon>
           <icon-ic-round-plus class="text-icon" />
         </template>
         新增
       </NButton>
-      <NPopconfirm @positive-click="batchDelete">
+      <NPopconfirm v-if="canBatchDelete" @positive-click="batchDelete">
         <template #trigger>
           <NButton size="small" ghost type="error" :disabled="disabledDelete">
             <template #icon>

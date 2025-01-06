@@ -45,6 +45,26 @@ export const generatedRoutes: GeneratedRoute[] = [
     }
   },
   {
+    name: 'devices',
+    path: '/devices',
+    component: 'layout.home',
+    meta: {
+      title: '设备管理',
+      homepage: true
+    },
+    children: [
+      {
+        name: 'devices_master',
+        path: '/devices/master',
+        component: 'view.devices_master',
+        meta: {
+          title: '控制设备',
+          homepage: true
+        }
+      }
+    ]
+  },
+  {
     name: 'home',
     path: '/home',
     component: 'layout.base$view.home',
@@ -102,6 +122,14 @@ export const generatedRoutes: GeneratedRoute[] = [
         meta: {
           title: '角色管理',
           homepage: true
+        }
+      },
+      {
+        name: 'manage_user',
+        path: '/manage/user',
+        component: 'view.manage_user',
+        meta: {
+          title: '用户管理'
         }
       }
     ]

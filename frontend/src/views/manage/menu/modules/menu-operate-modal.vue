@@ -81,12 +81,14 @@ type Model = Pick<
   layout: string
   page: string
   pathParam: string
+  id?: number
 }
 
 const model: Model = reactive(createDefaultModel())
 
 function createDefaultModel(): Model {
   return {
+    id: undefined,
     menuType: 1,
     menuName: "",
     routeName: "",
@@ -202,8 +204,8 @@ function handleInitModel() {
   }
 }
 
-/** 关闭抽屉 */
-function closeDrawer() {
+/** 关闭弹窗 */
+function closeModel() {
   visible.value = false
 }
 
@@ -254,8 +256,8 @@ async function handleSubmit() {
   const { error } = await editMenuInfo(params)
 
   if (!error) {
-    window.$message?.success("更新成功")
-    closeDrawer()
+    window.$message?.success("提交成功")
+    closeModel()
     emit("submitted")
   }
 }
@@ -446,7 +448,7 @@ watch(
     </NScrollbar>
     <template #footer>
       <NSpace justify="end" :size="16">
-        <NButton @click="closeDrawer">取消</NButton>
+        <NButton @click="closeModel">取消</NButton>
         <NButton type="primary" @click="handleSubmit">确认</NButton>
       </NSpace>
     </template>

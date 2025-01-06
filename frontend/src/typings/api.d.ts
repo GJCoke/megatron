@@ -28,7 +28,10 @@ declare namespace Api {
     }
 
     /** 表格的公共搜索参数 */
-    type CommonSearchParams = Pick<Common.PaginatingCommonParams, "page" | "pageSize"> & { keyword: string }
+    type CommonSearchParams = Pick<Common.PaginatingCommonParams, "page" | "pageSize">
+
+    /** 关键字公共搜索参数 */
+    type KeywordSearchParams = CommonSearchParams & { keyword: string }
 
     /**
      * 启用状态

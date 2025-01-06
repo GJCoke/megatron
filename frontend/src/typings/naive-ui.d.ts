@@ -26,6 +26,9 @@ declare namespace NaiveUI {
 
   type TableColumn<T> = TableColumnWithKey<T> | DataTableSelectionColumn<T> | DataTableExpandColumn<T>
 
+  /** 定义权限时的类型 */
+  type PermissionTableColumn<T> = TableColumn<NaiveUI.TableDataWithIndex<T>>
+
   type TableApiFn<T = any, R = Api.Common.CommonSearchParams> = (
     params: R
   ) => Promise<FlatResponseData<Api.Common.PaginatingQueryRecord<T>>>

@@ -14,7 +14,7 @@ declare namespace SystemManage {
   }>
 
   /** 角色搜索参数 */
-  type RoleSearchParams = CommonType.RecordNullable<Pick<Role, "status"> & Api.Common.CommonSearchParams>
+  type RoleSearchParams = CommonType.RecordNullable<Pick<Role, "status"> & Api.Common.KeywordSearchParams>
 
   type RoleEdit = { id?: number } & Pick<Role, "status" | "name" | "describe">
 
@@ -26,34 +26,40 @@ declare namespace SystemManage {
   /** 所有角色的简化类型 */
   type AllRole = Pick<Role, "id" | "name" | "describe">
 
-  /**
-   * 用户性别
-   *
-   * - "1": 男性
-   * - "2": 女性
-   */
-  type UserGender = 1 | 2
-
   /** 用户类型 */
   type User = Api.Common.CommonRecord<{
     /** 用户名称 */
-    userName: string
-    /** 用户性别 */
-    userGender: UserGender | null
-    /** 用户昵称 */
-    nickName: string
+    name: string
     /** 用户手机号 */
-    userPhone: string
+    mobile: string
     /** 用户邮箱 */
-    userEmail: string
-    /** 用户角色代码集合 */
-    userRoles: string[]
+    email: string
+    /** 用户角色 */
+    roleId?: number | null
+    /** 群组ID */
+    affiliationId?: number | null
+    /** 头像 */
+    avatarUrl?: string | null
+    /** 超管 */
+    isAdmin: boolean
+    /** 缓存信息 */
+    resource?: object | null
+    /** 权限信息 */
+    roles: string[]
+    /** 昵称 */
+    username: string
   }>
+
+  type UserEdit = { id?: number } & Pick<
+    User,
+    "name" | "mobile" | "email" | "roleId" | "affiliationId" | "avatarUrl" | "status"
+  >
+
+  type CreateUser = UserEdit & { password: string }
 
   /** 用户搜索参数 */
   type UserSearchParams = CommonType.RecordNullable<
-    Pick<User, "userName" | "userGender" | "nickName" | "userPhone" | "userEmail" | "status"> &
-      Api.Common.CommonSearchParams
+    Pick<User, "status" | "affiliationId"> & Api.Common.KeywordSearchParams
   >
 
   /** 用户列表 */
@@ -75,6 +81,17 @@ declare namespace SystemManage {
     code: string
     /** 按钮描述 */
     description: string
+  }
+
+  type MenuPermissionTree = {
+    /** 按钮代码 用于控制按钮权限 */
+    key: string
+    /** 按钮描述 */
+    label: string
+    value: string
+    disabled?: boolean
+    selectable?: boolean
+    children: MenuPermissionTree[]
   }
 
   /**
@@ -147,5 +164,21 @@ declare namespace SystemManage {
     nodeId: number
     /** 子菜单树 */
     children?: MenuTree[]
+  }
+
+  type AffiliationInfo = {
+    name: string
+    nodeId: number
+  }
+
+  type AffiliationEdit = {
+    id?: number
+  } & AffiliationInfo
+
+  type AffiliationTree = {
+    id: number
+    name: string
+    nodeId: number
+    children: AffiliationTree[]
   }
 }

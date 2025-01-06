@@ -9,6 +9,7 @@ import { useTable, useTableOperate } from "@/hooks/common/table"
 import { yesOrNoRecord } from "@/constants/common"
 import { enableStatusRecord, menuTypeRecord } from "@/constants/business"
 import SvgIcon from "@/components/custom/svg-icon.vue"
+import { useAuth } from "@/hooks/business/auth"
 import MenuOperateModal, { type OperateType } from "./modules/menu-operate-modal.vue"
 
 const appStore = useAppStore()
@@ -17,149 +18,168 @@ const { bool: visible, setTrue: openModal } = useBoolean()
 
 const wrapperRef = ref<HTMLElement | null>(null)
 
+const { hasAuth } = useAuth()
+const canAdd = hasAuth("manage.menu.add")
+const canAddChild = hasAuth("manage.menu.addChild")
+const canEdit = hasAuth("manage.menu.edit")
+const canDelete = hasAuth("manage.menu.delete")
+const canBatchDelete = hasAuth("manage.menu.batchDelete")
+
 const { columns, columnChecks, data, loading, pagination, getData, getDataByPage } = useTable({
   apiFn: fetchGetMenuList,
   apiParams: { page: 1, pageSize: 20 },
-  columns: () => [
-    {
-      type: "selection",
-      align: "center",
-      width: 48
-    },
-    {
-      key: "id",
-      title: "ID",
-      align: "center"
-    },
-    {
-      key: "menuType",
-      title: "菜单类型",
-      align: "center",
-      width: 80,
-      render: (row) => {
-        const tagMap: Record<SystemManage.MenuType, NaiveUI.ThemeColor> = {
-          1: "default",
-          2: "primary"
+  columns: () => {
+    const baseColumns: NaiveUI.PermissionTableColumn<SystemManage.Menu>[] = [
+      {
+        type: "selection",
+        align: "center",
+        width: 48
+      },
+      {
+        key: "id",
+        title: "ID",
+        align: "center"
+      },
+      {
+        key: "menuType",
+        title: "菜单类型",
+        align: "center",
+        width: 80,
+        render: (row) => {
+          const tagMap: Record<SystemManage.MenuType, NaiveUI.ThemeColor> = {
+            1: "default",
+            2: "primary"
+          }
+
+          const label = menuTypeRecord[row.menuType]
+
+          return <NTag type={tagMap[row.menuType]}>{label}</NTag>
         }
+      },
+      {
+        key: "menuName",
+        title: "菜单名称",
+        align: "center",
+        minWidth: 120,
+        render: (row) => {
+          return <span>{row.menuName}</span>
+        }
+      },
+      {
+        key: "icon",
+        title: "图标",
+        align: "center",
+        width: 60,
+        render: (row) => {
+          const icon = row.iconType === 1 ? row.icon : undefined
 
-        const label = menuTypeRecord[row.menuType]
+          const localIcon = row.iconType === 2 ? row.icon : undefined
 
-        return <NTag type={tagMap[row.menuType]}>{label}</NTag>
+          return (
+            <div class="flex-center">
+              <SvgIcon icon={icon} localIcon={localIcon} class="text-icon" />
+            </div>
+          )
+        }
+      },
+      {
+        key: "routeName",
+        title: "路由名称",
+        align: "center",
+        minWidth: 120
+      },
+      {
+        key: "routePath",
+        title: "路由路径",
+        align: "center",
+        minWidth: 120,
+        ellipsis: {
+          tooltip: true
+        }
+      },
+      {
+        key: "status",
+        title: "菜单状态",
+        align: "center",
+        width: 80,
+        render: (row) => {
+          if (row.status === null) {
+            return null
+          }
+          const status = row.status ? 1 : 2
+          const tagMap: Record<Api.Common.EnableStatus, NaiveUI.ThemeColor> = {
+            1: "success",
+            2: "warning"
+          }
+          const label = enableStatusRecord[status]
+
+          return <NTag type={tagMap[status]}>{label}</NTag>
+        }
+      },
+      {
+        key: "hideInMenu",
+        title: "隐藏菜单",
+        align: "center",
+        width: 80,
+        render: (row) => {
+          const hide: CommonType.YesOrNo = row.hideInMenu ? "Y" : "N"
+
+          const tagMap: Record<CommonType.YesOrNo, NaiveUI.ThemeColor> = {
+            Y: "error",
+            N: "default"
+          }
+
+          const label = yesOrNoRecord[hide]
+
+          return <NTag type={tagMap[hide]}>{label}</NTag>
+        }
+      },
+      {
+        key: "order",
+        title: "排序",
+        align: "center",
+        width: 60
       }
-    },
-    {
-      key: "menuName",
-      title: "菜单名称",
-      align: "center",
-      minWidth: 120,
-      render: (row) => {
-        return <span>{row.menuName}</span>
-      }
-    },
-    {
-      key: "icon",
-      title: "图标",
-      align: "center",
-      width: 60,
-      render: (row) => {
-        const icon = row.iconType === 1 ? row.icon : undefined
+    ]
 
-        const localIcon = row.iconType === 2 ? row.icon : undefined
-
-        return (
-          <div class="flex-center">
-            <SvgIcon icon={icon} localIcon={localIcon} class="text-icon" />
+    /** 如果操作列无权限时不添加操作列 */
+    if (canEdit || canDelete || canAddChild) {
+      baseColumns.push({
+        key: "operate",
+        title: "操作",
+        align: "center",
+        width: 230,
+        render: (row) => (
+          <div class="flex-center justify-end gap-8px">
+            {row.menuType === 1 && canAddChild && (
+              <NButton type="primary" ghost size="small" onClick={() => handleAddChildMenu(row)}>
+                新增子菜单
+              </NButton>
+            )}
+            {canEdit && (
+              <NButton type="primary" ghost size="small" onClick={() => handleEdit(row)}>
+                编辑
+              </NButton>
+            )}
+            {canDelete && (
+              <NPopconfirm onPositiveClick={() => handleDelete(row.id)}>
+                {{
+                  default: () => "确认删除吗？",
+                  trigger: () => (
+                    <NButton type="error" ghost size="small">
+                      删除
+                    </NButton>
+                  )
+                }}
+              </NPopconfirm>
+            )}
           </div>
         )
-      }
-    },
-    {
-      key: "routeName",
-      title: "路由名称",
-      align: "center",
-      minWidth: 120
-    },
-    {
-      key: "routePath",
-      title: "路由路径",
-      align: "center",
-      minWidth: 120,
-      ellipsis: {
-        tooltip: true
-      }
-    },
-    {
-      key: "status",
-      title: "菜单状态",
-      align: "center",
-      width: 80,
-      render: (row) => {
-        if (row.status === null) {
-          return null
-        }
-        const status = row.status ? 1 : 2
-        const tagMap: Record<Api.Common.EnableStatus, NaiveUI.ThemeColor> = {
-          1: "success",
-          2: "warning"
-        }
-        const label = enableStatusRecord[status]
-
-        return <NTag type={tagMap[status]}>{label}</NTag>
-      }
-    },
-    {
-      key: "hideInMenu",
-      title: "隐藏菜单",
-      align: "center",
-      width: 80,
-      render: (row) => {
-        const hide: CommonType.YesOrNo = row.hideInMenu ? "Y" : "N"
-
-        const tagMap: Record<CommonType.YesOrNo, NaiveUI.ThemeColor> = {
-          Y: "error",
-          N: "default"
-        }
-
-        const label = yesOrNoRecord[hide]
-
-        return <NTag type={tagMap[hide]}>{label}</NTag>
-      }
-    },
-    {
-      key: "order",
-      title: "排序",
-      align: "center",
-      width: 60
-    },
-    {
-      key: "operate",
-      title: "操作",
-      align: "center",
-      width: 230,
-      render: (row) => (
-        <div class="flex-center justify-end gap-8px">
-          {row.menuType === 1 && (
-            <NButton type="primary" ghost size="small" onClick={() => handleAddChildMenu(row)}>
-              新增子菜单
-            </NButton>
-          )}
-          <NButton type="primary" ghost size="small" onClick={() => handleEdit(row)}>
-            编辑
-          </NButton>
-          <NPopconfirm onPositiveClick={() => handleDelete(row.id)}>
-            {{
-              default: () => "确认删除吗？",
-              trigger: () => (
-                <NButton type="error" ghost size="small">
-                  删除
-                </NButton>
-              )
-            }}
-          </NPopconfirm>
-        </div>
-      )
+      })
     }
-  ]
+
+    return baseColumns
+  }
 })
 
 const { checkedRowKeys, onBatchDeleted, onDeleted } = useTableOperate(data, getData)
@@ -228,6 +248,8 @@ init()
           v-model:columns="columnChecks"
           :disabled-delete="checkedRowKeys.length === 0"
           :loading="loading"
+          :can-add="canAdd"
+          :can-batch-delete="canBatchDelete"
           @add="handleAdd"
           @delete="handleBatchDelete"
           @refresh="getData"

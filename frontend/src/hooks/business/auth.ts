@@ -15,13 +15,16 @@ export function useAuth() {
       return false
     }
 
+    /** 如果为超管则永远为 true */
+    if (authStore.userInfo.isAdmin) return true
+
     // 如果 `codes` 是单个字符串，检查用户的权限中是否包含该字符串
     if (typeof codes === "string") {
-      return authStore.userInfo.buttons.includes(codes)
+      return authStore.userInfo.roles.includes(codes)
     }
 
     // 如果 `codes` 是字符串数组，检查用户的权限中是否包含数组中的任意一个字符串
-    return codes.some((code) => authStore.userInfo.buttons.includes(code))
+    return codes.some((code) => authStore.userInfo.roles.includes(code))
   }
 
   return {

@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { enableStatusOptions } from "@/constants/business"
+import { translateOptions } from "@/utils/common"
+import { useAffiliationStore } from "@/store/modules/affiliation"
 
 defineOptions({
-  name: "RoleSearch"
+  name: "UserSearch"
 })
 
 interface Emits {
@@ -12,35 +14,46 @@ interface Emits {
 
 const emit = defineEmits<Emits>()
 
-const model = defineModel<SystemManage.RoleSearchParams>("model", { required: true })
+const model = defineModel<SystemManage.UserSearchParams>("model", { required: true })
 
-function reset() {
+const affiliationStore = useAffiliationStore()
+
+async function reset() {
   emit("reset")
 }
 
-function search() {
+async function search() {
   emit("search")
 }
 </script>
 
 <template>
   <NCard :bordered="false" size="small" class="card-wrapper">
-    <NCollapse :default-expanded-names="['role-search']">
-      <NCollapseItem title="搜索" name="role-search">
+    <NCollapse :default-expanded-names="['user-search']">
+      <NCollapseItem title="搜索" name="user-search">
         <NForm :model="model" label-placement="left" :label-width="80">
           <NGrid responsive="screen" item-responsive>
             <NFormItemGi span="24 s:12 m:6" label="关键字" path="keyword" class="pr-24px">
               <NInput v-model:value="model.keyword" placeholder="输入关键字查询" />
             </NFormItemGi>
-            <NFormItemGi span="24 s:12 m:6" label="角色状态" path="status" class="pr-24px">
-              <NSelect
-                v-model:value="model.status"
-                placeholder="请选择角色状态"
-                :options="enableStatusOptions"
+            <NFormItemGi span="24 s:12 m:7" label="用户群组" path="affiliationId" class="pr-24px">
+              <NTreeSelect
+                v-model:value="model.affiliationId"
+                :options="affiliationStore.affiliationTree"
+                default-expand-all
+                placeholder="请选择用户群组"
                 clearable
               />
             </NFormItemGi>
-            <NFormItemGi span="24 s:12 m:6">
+            <NFormItemGi span="24 s:12 m:6" label="用户状态" path="status" class="pr-24px">
+              <NSelect
+                v-model:value="model.status"
+                placeholder="请选择用户状态"
+                :options="translateOptions(enableStatusOptions)"
+                clearable
+              />
+            </NFormItemGi>
+            <NFormItemGi span="24 m:12 m:5" class="pr-24px">
               <NSpace class="w-full" justify="end">
                 <NButton @click="reset">
                   <template #icon>

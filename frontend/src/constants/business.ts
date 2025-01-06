@@ -16,13 +16,6 @@ export const enableStatusOptions = [
   }
 ]
 
-export const userGenderRecord: Record<SystemManage.UserGender, string> = {
-  1: "男",
-  2: "女"
-}
-
-export const userGenderOptions = transformRecordToOption(userGenderRecord)
-
 export const menuTypeRecord: Record<SystemManage.MenuType, string> = {
   1: "目录",
   2: "菜单"

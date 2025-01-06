@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { shallowRef, watch, computed } from "vue"
+import { computed, ref, shallowRef, watch } from "vue"
 import { editRolePermissionInfo, getPermissionMenuList } from "@/service/api"
 import { addIsLeafToTreeNodes } from "@/utils/common"
 
@@ -32,7 +32,7 @@ function closeModal() {
 
 const title = computed(() => (props.type === "buttons" ? "按钮" : "接口"))
 
-const tree = shallowRef<SystemManage.MenuPermission[]>([])
+const tree = shallowRef<SystemManage.MenuPermissionTree[]>([])
 
 async function getAllButtons() {
   // request
@@ -68,6 +68,42 @@ async function handleSubmit() {
   }
 }
 
+/** 获取所有节点的 key 值 */
+function getAllKeys(nodes: SystemManage.MenuPermissionTree[]) {
+  const keys: string[] = []
+
+  const traverse = (nodeList: SystemManage.MenuPermissionTree[]) => {
+    nodeList.forEach((node) => {
+      if (node.selectable) {
+        keys.push(node.value)
+      }
+
+      if (node.children) {
+        traverse(node.children)
+      }
+    })
+  }
+  traverse(nodes)
+  return keys
+}
+
+const checkText = ref<string>("全选")
+
+/** 全选 */
+function checkAll() {
+  checks.value = getAllKeys(tree.value)
+}
+
+/** 取消全选 */
+function uncheckAll() {
+  checks.value = []
+}
+
+function handleUpdateChecked(value: boolean) {
+  value ? checkAll() : uncheckAll()
+  checkText.value = !value ? "全选" : "取消全选"
+}
+
 function init() {
   getAllButtons()
   getChecks()
@@ -82,6 +118,9 @@ watch(visible, (val) => {
 
 <template>
   <NModal v-model:show="visible" :title="`编辑${title}权限`" preset="card" class="w-480px">
+    <div class="mb-4 border-b p-2">
+      <NCheckbox @update:checked="handleUpdateChecked">{{ checkText }}</NCheckbox>
+    </div>
     <NTree
       v-model:checked-keys="checks"
       :data="addIsLeafToTreeNodes(tree)"

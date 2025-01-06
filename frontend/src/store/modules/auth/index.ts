@@ -6,7 +6,6 @@ import JSEncrypt from "jsencrypt"
 import { SetupStoreId } from "@/enum"
 import { useRouterPush } from "@/hooks/common/router"
 import { fetchGetUserInfo, fetchLogin, getPublicKey } from "@/service/api/auth"
-import type { Auth } from "@/service/api/auth"
 import { localStg } from "@/utils/storage"
 import { useRouteStore } from "../route"
 import { useTabStore } from "../tab"
@@ -67,6 +66,21 @@ export const useAuthStore = defineStore(SetupStoreId.Auth, () => {
   }
 
   /**
+   * 加密密码
+   *
+   * @param password 密码
+   */
+  async function encryptCipher(password: string) {
+    const { data: publicKey } = await getPublicKey()
+
+    /** 对密码进行 RSA 加密 */
+    const encryptor = new JSEncrypt()
+    encryptor.setPublicKey(publicKey as string)
+
+    return (encryptor.encrypt(password) as string) || ""
+  }
+
+  /**
    * 登录
    *
    * @param username 用户名
@@ -75,14 +89,8 @@ export const useAuthStore = defineStore(SetupStoreId.Auth, () => {
    */
   async function login(username: string, password: string, redirect = true) {
     startLoading()
-
-    /** 对密码进行 RSA 加密 */
-    const { data: publicKey } = await getPublicKey()
-
-    const encryptor = new JSEncrypt()
-    encryptor.setPublicKey(publicKey as string)
-
-    const { data: loginToken, error } = await fetchLogin(username, encryptor.encrypt(password) || "")
+    const encrypt_password = await encryptCipher(password)
+    const { data: loginToken, error } = await fetchLogin(username, encrypt_password)
 
     if (!error) {
       const pass = await loginByToken(loginToken)
@@ -166,6 +174,7 @@ export const useAuthStore = defineStore(SetupStoreId.Auth, () => {
     loginLoading,
     resetStore,
     login,
-    initUserInfo
+    initUserInfo,
+    encryptCipher
   }
 })

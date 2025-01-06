@@ -1,7 +1,7 @@
 # _author: Coke
 # _date: 2024/7/25 14:15
 # _description: 系统管理相关路由
-
+from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
@@ -37,6 +37,10 @@ from .service import (
     get_role_list,
     update_password,
     update_user,
+    get_user_list,
+    get_role_all,
+    delete_user,
+    batch_delete_user
 )
 from .types import (
     AuthEditAffiliationRequest,
@@ -50,7 +54,9 @@ from .types import (
     ManageGetMenuListRequest,
     UpdatePasswordRequest,
     UpdateUserInfoRequest,
+    AuthGetUserListRequest
 )
+from ..auth.service import get_current_user
 
 router = APIRouter(prefix="/manage", dependencies=[Depends(validate_permission)])
 
@@ -114,6 +120,59 @@ async def user_update_password(body: UpdatePasswordRequest) -> ResponseModel:
     return ResponseModel()
 
 
+@router.post("/getUserList")
+async def user_list(body: AuthGetUserListRequest) -> ResponseModel[Pagination[list[UserResponse]]]:
+    """
+    获取用户列表接口
+
+    获取用户的分页列表，并通过关键字(用户名、邮箱、手机号、拼音)进行查询。\f
+
+    :param body: 包含分页、状态和关键字信息的 <AuthGetUserListRequest> 对象
+    :return: 包含用户列表的 <UserResponse> 对象
+    """
+    user = await get_user_list(
+        body.page, body.pageSize, keyword=body.keyword, status=body.status, affiliation_id=body.affiliationId
+    )
+    return ResponseModel(data=user)
+
+
+@router.delete("/deleteUser")
+async def user_delete(
+    body: DeleteRequestModel,
+    current_user: Annotated[UserResponse, Depends(get_current_user)]
+) -> ResponseModel[UserResponse]:
+    """
+    删除用户信息接口
+
+    根据用户 ID 删除指定的用户信息。\f
+
+    :param body: 包含用户 ID 的 <DeleteRequestModel> 对象
+    :param current_user: 当前用户信息
+    :return: 包含被删除用户信息的 <ResponseModel> 对象
+    """
+    user = await delete_user(user_id=body.id, user=current_user)
+    return ResponseModel(data=user)
+
+
+@router.delete("/batchDeleteUser")
+async def user_batch_delete(
+    body: BatchDeleteRequestModel,
+    current_user: Annotated[UserResponse, Depends(get_current_user)]
+) -> ResponseModel[list[UserResponse]]:
+    """
+    批量删除用户接口
+
+    根据用户 ID 列表删除指定的用户。\f
+
+    :param body: 包含用户 ids 的 <DeleteRequestModel> 对象
+    :param current_user: 当前用户信息
+    :return:
+    """
+
+    user = await batch_delete_user(ids=body.ids, user=current_user)
+    return ResponseModel(data=user)
+
+
 @router.put("/editRoleInfo")
 async def role_edit(body: AuthEditRoleRequest) -> ResponseModel[RoleInfoResponse]:
     """
@@ -168,6 +227,17 @@ async def role_list(
     return ResponseModel(data=role)
 
 
+@router.get("/getRoleAll")
+async def role_all() -> ResponseModel[list[RoleInfoResponse]]:
+    """
+    获取全部角色列表接口\f
+
+    :return: 全部角色列表的 <ResponseModel> 对象
+    """
+    role = await get_role_all()
+    return ResponseModel(data=role)
+
+
 @router.delete("/deleteRole")
 async def role_delete(body: DeleteRequestModel) -> ResponseModel[RoleInfoResponse]:
     """
@@ -189,7 +259,7 @@ async def role_batch_delete(body: BatchDeleteRequestModel) -> ResponseModel[list
 
     根据角色 ID 列表删除指定的角色。\f
 
-    :param body: 包含菜单 ids 的 <DeleteRequestModel> 对象
+    :param body: 包含角色 ids 的 <DeleteRequestModel> 对象
     :return:
     """
 

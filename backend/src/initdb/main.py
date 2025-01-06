@@ -2,7 +2,7 @@
 # _date: 2024/9/14 上午10:05
 # _description:
 
-from sqlmodel import Session, create_engine
+from sqlmodel import Session, create_engine, SQLModel
 
 from src.initdb.manage import manage
 
@@ -14,4 +14,6 @@ engine = create_engine(sqlite_url, echo=True)
 
 if __name__ == "__main__":
     with Session(engine) as session:
+        SQLModel.metadata.drop_all(engine)
+        SQLModel.metadata.create_all(engine)
         manage(session)

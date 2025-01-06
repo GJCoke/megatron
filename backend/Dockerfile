@@ -3,7 +3,7 @@
 # _description: Docker 镜像部署服务器
 
 # 使用 Python 3.12.4 为镜像
-FROM python:3.12.4-slim-bookworm
+FROM python:3.12
 
 # 更新包管理器的索引并安装系统依赖
 RUN apt-get update && \

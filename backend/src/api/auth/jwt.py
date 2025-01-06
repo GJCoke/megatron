@@ -111,6 +111,7 @@ async def parse_jwt_user_data(
 ) -> JWTData:
     """
     验证并返回解码后的 JWT 用户数据。
+    Token 校验
 
     :param token: 解码后的 JWT 数据对象。必须存在并且有效，否则会抛出 AuthRequired 异常。
     :return: 解码后的 JWT 数据对象。
@@ -128,6 +129,7 @@ async def validate_permission(
 ) -> None:
     """
     验证用户访问权限。
+    Permission 校验
 
     由于继承了 parse_jwt_user_data 函数，会优先对用户的 Token 进行校验。
 
@@ -145,5 +147,5 @@ async def validate_permission(
         select(UserTable).options(database.joined_load(UserTable.role)).where(UserTable.id == token.userId)
     )
 
-    if not (user.isAdmin or (user.roleId and user.role and uri in user.role.menuIds)):
+    if not (user.isAdmin or (user.roleId and user.role and uri in user.role.interfaceCodes)):
         raise AuthorizationFailed()

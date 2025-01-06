@@ -208,5 +208,6 @@ class MenuPermissionTreeResponse(BaseModel):
     key: str
     label: str
     value: str
-    disabled: bool
+    disabled: bool  # 是否禁用节点
+    selectable: bool  # 节点是否可以被选中
     children: list["MenuPermissionTreeResponse"] = []

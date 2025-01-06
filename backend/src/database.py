@@ -245,6 +245,7 @@ async def select_tree(
     clause_list: list[ColumnElement[bool] | bool] | None = None,
     page: int | None = None,
     size: int | None = None,
+    descending: bool = True,
 ) -> list[_TSelectResponse] | Pagination[list[_TSelectResponse]]:
     """
     根据给定的 recursion_id 查询符合条件的树形结构数据。
@@ -261,6 +262,7 @@ async def select_tree(
     :param clause_list: sql条件的列表
     :param page: 分页的页码，默认为 None 表示不分页。
     :param size: 分页的每页大小，默认为 None 表示不分页。
+    :param descending: 是否倒序, 默认倒序
 
     :return: 符合条件的树形结构数据列表，每个元素都是 `response_model` 的实例。
     """
@@ -274,7 +276,8 @@ async def select_tree(
     if node_id or not keyword:
         clause.append(getattr(table, recursion_id) == node_id)
 
-    query = _select(table).where(*clause).order_by(desc(table.id))
+    query = _select(table).where(*clause)
+    query = query.order_by(desc(table.id)) if descending else query.order_by(table.id)
 
     # 获取数据
     if isinstance(page, int) and isinstance(size, int):

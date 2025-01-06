@@ -2,13 +2,14 @@
 # _date: 2024/7/26 14:20
 # _description: 系统管理相关的服务器业务逻辑
 
+import asyncio
 from itertools import chain
 
 from sqlalchemy import ColumnElement
 from sqlmodel import or_, select
 
 from src import database, utils
-from src.api.auth.exceptions import WrongPassword
+from src.api.auth.exceptions import AuthorizationFailed, WrongPassword
 from src.api.auth.security import check_password, hash_password
 from src.api.auth.service import decrypt_password
 from src.exceptions import BadData, DatabaseUniqueError
@@ -156,6 +157,130 @@ async def update_password(*, user_id: int, old_password: str, new_password: str)
     await database.update(user)
 
 
+async def get_related_affiliations_by_node_id(node_id: int) -> list[int]:
+    """
+    通过群组的节点 ID 遍历其所有的子节点, 并整合到一个列表中
+
+    :param node_id: 节点ID
+    :return: 所有子节点的ID列表
+    """
+
+    affiliation_list: list[int] = []
+
+    affiliation_id_list = await database.select_all(select(AffiliationTable.id).where(AffiliationTable.nodeId == node_id))
+
+    # 异步并行处理所有子群组的查询
+    child_affiliation_tasks = []
+    for affiliation_id in affiliation_id_list:
+        affiliation_list.append(affiliation_id)
+
+        # 为每个子群组创建任务并加入任务列表
+        child_affiliation_tasks.append(get_related_affiliations_by_node_id(affiliation_id))
+
+    # 等待所有子群组查询的结果并合并
+    child_affiliation_results = await asyncio.gather(*child_affiliation_tasks)
+
+    for child_result in child_affiliation_results:
+        affiliation_list.extend(child_result)
+
+    return affiliation_list
+
+
+async def get_user_list(
+    page: int, size: int, *, keyword: str = "", status: bool | None = None, affiliation_id: int | None = None
+) -> Pagination[list[UserResponse]]:
+    """
+    获取用户信息列表
+
+    分页获取用户信息, 并更具 `keyword` 进行关键字匹配
+
+    :param page: 当前页
+    :param size: 每页的大小
+    :param keyword: 关键字查询
+    :param status: 用户在职状态
+    :param affiliation_id: 用户所属群组
+    :return: 用户信息列表
+    """
+
+    clause: list[ColumnElement[bool] | bool] = [or_(*[
+        database.like(field=UserTable.name, keyword=keyword),
+        database.like(field=UserTable.username, keyword=keyword),
+        database.like(field=UserTable.email, keyword=keyword),
+        database.like(field=UserTable.mobile, keyword=keyword),
+    ])]
+
+    if status is not None:
+        clause.append(UserTable.status == status)
+
+    if affiliation_id is not None:
+        affiliation_list = await get_related_affiliations_by_node_id(affiliation_id)
+        affiliation_list.append(affiliation_id)
+        clause.append(or_(*[UserTable.affiliationId == _id for _id in affiliation_list]))
+
+    user_pagination = await database.pagination(
+        select(UserTable).where(*clause),
+        page=page,
+        size=size,
+    )
+
+    return Pagination(
+        page=user_pagination.page,
+        pageSize=user_pagination.pageSize,
+        records=[UserResponse(**user.model_dump()) for user in user_pagination.records],
+        total=user_pagination.total,
+    )
+
+
+async def delete_user(*, user_id: int, user: UserResponse) -> UserResponse:
+    """
+    删除一个角色信息
+
+    该函数根据 `user_id` 删除指定的用户信息。
+
+    :param user_id: 用户 ID
+    :param user: 当前用户信息
+    :return: 删除的用户信息的响应对象
+    """
+
+    # 超管用户无法被普通用户所删除
+    if not user.isAdmin:
+        current_user = await database.select(select(UserTable).where(UserTable.id == user_id))
+        if current_user.isAdmin:
+            raise AuthorizationFailed()
+
+    user = await database.delete(select(UserTable).where(UserTable.id == user_id))
+    return UserResponse(**user.model_dump())
+
+
+async def batch_delete_user(*, ids: list[int], user: UserResponse) -> list[UserResponse]:
+    """
+    删除多个角色
+
+    该函数根据 `ids` 删除指定的角色。
+
+    :param ids: 角色 ID 列表
+    :param user: 当前用户信息
+    :return
+    """
+
+    _ids = ids
+
+    # 超管用户无法被普通用户所删除, 当多选时, 将过滤掉超管用户
+    if not user.isAdmin:
+        _ids = await database.select_all(
+            select(UserTable.id).where(or_(*[UserTable.id == _id for _id in ids]), UserTable.isAdmin == 0)
+        )
+
+        if not _ids:
+            raise AuthorizationFailed()
+
+    user = await database.batch_delete(
+        select(UserTable).where(or_(*[UserTable.id == _id for _id in _ids]))
+    )
+
+    return [UserResponse(**item.model_dump()) for item in user]
+
+
 async def edit_affiliation(*, affiliation_id: int, name: str, node_id: int) -> AffiliationInfoResponse:
     """
     创建/更新一个所属关系
@@ -207,7 +332,12 @@ async def get_affiliation_tree(*, node_id: int, keyword: str = "") -> list[Affil
     """
 
     affiliation_dict_list = await database.select_tree(
-        AffiliationTable, AffiliationListResponse, node_id=node_id, keyword_map_list=["name"], keyword=keyword
+        AffiliationTable,
+        AffiliationListResponse,
+        node_id=node_id,
+        keyword_map_list=["name"],
+        keyword=keyword,
+        descending=False
     )
 
     return affiliation_dict_list  # type: ignore
@@ -316,6 +446,17 @@ async def get_role_list(
     )
 
 
+async def get_role_all() -> list[RoleInfoResponse]:
+    """
+    获取全部角色信息列表
+
+    :return: 全部角色信息列表
+    """
+
+    role_list = await database.select_all(select(RoleTable))
+    return [RoleInfoResponse(**role.model_dump()) for role in role_list]
+
+
 async def delete_role(*, role_id: int) -> RoleInfoResponse:
     """
     删除一个角色信息
@@ -341,7 +482,7 @@ async def batch_delete_role(*, ids: list[int]) -> list[RoleInfoResponse]:
     """
 
     role = await database.batch_delete(
-        select(RoleTable).where(or_(*[RoleTable.id == _id for _id in ids], *[MenuTable.nodeId == _id for _id in ids]))
+        select(RoleTable).where(or_(*[RoleTable.id == _id for _id in ids]))
     )
 
     return [RoleInfoResponse(**item.model_dump()) for item in role]
@@ -616,7 +757,11 @@ async def get_menu_permission_tree(menu_type: str) -> list[MenuPermissionTreeRes
 
         for index, _menu in enumerate(tree, start=1):
             permission_menu = MenuPermissionTreeResponse(
-                disabled=True, key=f"{depth}-{index}", label=_menu.menuName, value=_menu.routePath, children=[]
+                disabled=True,
+                selectable=False,
+                key=f"{depth}-{index}",
+                label=_menu.menuName,
+                value=_menu.routePath, children=[]
             )
 
             if _menu.children:
@@ -630,6 +775,7 @@ async def get_menu_permission_tree(menu_type: str) -> list[MenuPermissionTreeRes
                     permission_menu.children.append(
                         MenuPermissionTreeResponse(
                             disabled=False,
+                            selectable=True,
                             key=f"{depth}-{index}-{button_index}",
                             label=button.description,
                             value=button.code,

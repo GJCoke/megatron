@@ -54,6 +54,13 @@ class UpdatePasswordRequest(CustomModel):
     newPassword: str = Body(..., description="新的密码")
 
 
+class AuthGetUserListRequest(GeneralKeywordPageRequestModel):
+    """获取角色列表的请求体"""
+
+    status: bool | None = Body(None, description="用户状态查询")
+    affiliationId: int | None = Body(None, description="用户所属群组")
+
+
 class AuthEditRoleRequest(CustomModel):
     """修改角色信息请求体"""
 

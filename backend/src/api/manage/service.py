@@ -167,7 +167,9 @@ async def get_related_affiliations_by_node_id(node_id: int) -> list[int]:
 
     affiliation_list: list[int] = []
 
-    affiliation_id_list = await database.select_all(select(AffiliationTable.id).where(AffiliationTable.nodeId == node_id))
+    affiliation_id_list: list[int] = await database.select_all(
+        select(AffiliationTable.id).where(AffiliationTable.nodeId == node_id)  # type: ignore
+    )
 
     # 异步并行处理所有子群组的查询
     child_affiliation_tasks = []
@@ -202,12 +204,16 @@ async def get_user_list(
     :return: 用户信息列表
     """
 
-    clause: list[ColumnElement[bool] | bool] = [or_(*[
-        database.like(field=UserTable.name, keyword=keyword),
-        database.like(field=UserTable.username, keyword=keyword),
-        database.like(field=UserTable.email, keyword=keyword),
-        database.like(field=UserTable.mobile, keyword=keyword),
-    ])]
+    clause: list[ColumnElement[bool] | bool] = [
+        or_(
+            *[
+                database.like(field=UserTable.name, keyword=keyword),
+                database.like(field=UserTable.username, keyword=keyword),
+                database.like(field=UserTable.email, keyword=keyword),
+                database.like(field=UserTable.mobile, keyword=keyword),
+            ]
+        )
+    ]
 
     if status is not None:
         clause.append(UserTable.status == status)
@@ -248,8 +254,8 @@ async def delete_user(*, user_id: int, user: UserResponse) -> UserResponse:
         if current_user.isAdmin:
             raise AuthorizationFailed()
 
-    user = await database.delete(select(UserTable).where(UserTable.id == user_id))
-    return UserResponse(**user.model_dump())
+    user_info = await database.delete(select(UserTable).where(UserTable.id == user_id))
+    return UserResponse(**user_info.model_dump())
 
 
 async def batch_delete_user(*, ids: list[int], user: UserResponse) -> list[UserResponse]:
@@ -268,17 +274,15 @@ async def batch_delete_user(*, ids: list[int], user: UserResponse) -> list[UserR
     # 超管用户无法被普通用户所删除, 当多选时, 将过滤掉超管用户
     if not user.isAdmin:
         _ids = await database.select_all(
-            select(UserTable.id).where(or_(*[UserTable.id == _id for _id in ids]), UserTable.isAdmin == 0)
+            select(UserTable.id).where(or_(*[UserTable.id == _id for _id in ids]), UserTable.isAdmin == 0)  # type: ignore
         )
 
         if not _ids:
             raise AuthorizationFailed()
 
-    user = await database.batch_delete(
-        select(UserTable).where(or_(*[UserTable.id == _id for _id in _ids]))
-    )
+    user_list = await database.batch_delete(select(UserTable).where(or_(*[UserTable.id == _id for _id in _ids])))
 
-    return [UserResponse(**item.model_dump()) for item in user]
+    return [UserResponse(**item.model_dump()) for item in user_list]
 
 
 async def edit_affiliation(*, affiliation_id: int, name: str, node_id: int) -> AffiliationInfoResponse:
@@ -337,7 +341,7 @@ async def get_affiliation_tree(*, node_id: int, keyword: str = "") -> list[Affil
         node_id=node_id,
         keyword_map_list=["name"],
         keyword=keyword,
-        descending=False
+        descending=False,
     )
 
     return affiliation_dict_list  # type: ignore
@@ -481,9 +485,7 @@ async def batch_delete_role(*, ids: list[int]) -> list[RoleInfoResponse]:
     :return
     """
 
-    role = await database.batch_delete(
-        select(RoleTable).where(or_(*[RoleTable.id == _id for _id in ids]))
-    )
+    role = await database.batch_delete(select(RoleTable).where(or_(*[RoleTable.id == _id for _id in ids])))
 
     return [RoleInfoResponse(**item.model_dump()) for item in role]
 
@@ -761,7 +763,8 @@ async def get_menu_permission_tree(menu_type: str) -> list[MenuPermissionTreeRes
                 selectable=False,
                 key=f"{depth}-{index}",
                 label=_menu.menuName,
-                value=_menu.routePath, children=[]
+                value=_menu.routePath,
+                children=[],
             )
 
             if _menu.children:

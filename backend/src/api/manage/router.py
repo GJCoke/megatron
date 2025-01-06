@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends
 from src.api.auth.jwt import validate_permission
 from src.models.types import BatchDeleteRequestModel, DeleteRequestModel, Pagination, ResponseModel
 
+from ..auth.service import get_current_user
 from .models import (
     AffiliationInfoResponse,
     AffiliationListResponse,
@@ -21,10 +22,12 @@ from .models import (
 from .service import (
     batch_delete_menu,
     batch_delete_role,
+    batch_delete_user,
     create_user,
     delete_affiliation,
     delete_menu,
     delete_role,
+    delete_user,
     edit_affiliation,
     edit_menu,
     edit_role,
@@ -34,19 +37,18 @@ from .service import (
     get_menu_simplify_tree,
     get_menu_tree,
     get_page_list,
+    get_role_all,
     get_role_list,
+    get_user_list,
     update_password,
     update_user,
-    get_user_list,
-    get_role_all,
-    delete_user,
-    batch_delete_user
 )
 from .types import (
     AuthEditAffiliationRequest,
     AuthEditRoleRequest,
     AuthGetAffiliationListRequest,
     AuthGetRoleListRequest,
+    AuthGetUserListRequest,
     CreateUserRequest,
     ManageEditMenuRequest,
     ManageEditRolePermissionRequest,
@@ -54,9 +56,7 @@ from .types import (
     ManageGetMenuListRequest,
     UpdatePasswordRequest,
     UpdateUserInfoRequest,
-    AuthGetUserListRequest
 )
-from ..auth.service import get_current_user
 
 router = APIRouter(prefix="/manage", dependencies=[Depends(validate_permission)])
 
@@ -138,8 +138,7 @@ async def user_list(body: AuthGetUserListRequest) -> ResponseModel[Pagination[li
 
 @router.delete("/deleteUser")
 async def user_delete(
-    body: DeleteRequestModel,
-    current_user: Annotated[UserResponse, Depends(get_current_user)]
+    body: DeleteRequestModel, current_user: Annotated[UserResponse, Depends(get_current_user)]
 ) -> ResponseModel[UserResponse]:
     """
     删除用户信息接口
@@ -156,8 +155,7 @@ async def user_delete(
 
 @router.delete("/batchDeleteUser")
 async def user_batch_delete(
-    body: BatchDeleteRequestModel,
-    current_user: Annotated[UserResponse, Depends(get_current_user)]
+    body: BatchDeleteRequestModel, current_user: Annotated[UserResponse, Depends(get_current_user)]
 ) -> ResponseModel[list[UserResponse]]:
     """
     批量删除用户接口

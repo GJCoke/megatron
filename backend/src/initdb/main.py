@@ -2,7 +2,7 @@
 # _date: 2024/9/14 上午10:05
 # _description:
 
-from sqlmodel import Session, create_engine, SQLModel
+from sqlmodel import Session, SQLModel, create_engine
 
 from src.initdb.manage import manage
 

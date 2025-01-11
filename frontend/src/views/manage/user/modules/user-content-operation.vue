@@ -6,6 +6,7 @@ import { enableStatusRecord } from "@/constants/business"
 import { useTable, useTableOperate } from "@/hooks/common/table"
 import { useAuth } from "@/hooks/business/auth"
 import { useAuthStore } from "@/store/modules/auth"
+import { useAppStore } from "@/store/modules/app"
 import UserOperateDrawer from "./user-operate-drawer.vue"
 import UserSearch from "./user-search.vue"
 
@@ -19,6 +20,7 @@ interface Props {
 
 const props = defineProps<Props>()
 
+const appStore = useAppStore()
 const { hasAuth } = useAuth()
 const { userInfo } = useAuthStore()
 
@@ -205,6 +207,7 @@ function edit(id: number) {
         :columns="columns"
         :data="data"
         size="small"
+        :flex-height="!appStore.isMobile"
         :scroll-x="962"
         :loading="loading"
         remote

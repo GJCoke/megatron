@@ -15,6 +15,7 @@ from sqlalchemy.sql.elements import ColumnElement
 from sqlmodel import col, desc
 from sqlmodel import select as _select
 from sqlmodel.ext.asyncio.session import AsyncSession
+from sqlmodel.sql.base import Executable
 from sqlmodel.sql.expression import Select, SelectOfScalar
 
 from src.config import settings
@@ -199,7 +200,7 @@ async def select(
 
 
 async def pagination(
-    statement: Select[_TSelectParam] | SelectOfScalar[_TSelectParam],
+    statement: Select[_TSelectParam] | SelectOfScalar[_TSelectParam] | Executable[_TSelectParam],
     *,
     page: int = 1,
     size: int = 20,
@@ -213,10 +214,13 @@ async def pagination(
     :return:
     """
     async with get_session() as session:
-        results = await session.exec(statement.offset(0 if page <= 1 else page - 1).limit(size))
+        results = await session.exec(statement.offset((page - 1) * size).limit(size))
         total_count = await session.exec(statement)
         return Pagination(
-            page=page, pageSize=size, total=len(total_count.all()), records=[result for result in results.all()]
+            page=page,
+            pageSize=size,
+            total=len(total_count.unique().all()),  # type: ignore
+            records=[result for result in results.unique().all()],  # type: ignore
         )
 
 

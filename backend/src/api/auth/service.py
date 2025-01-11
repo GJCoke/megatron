@@ -12,7 +12,8 @@ from sqlmodel import select
 
 from src import cache, database
 from src.api.auth import jwt
-from src.api.manage.models import UserResponse, UserTable
+from src.api.manage.models import UserResponse
+from src.models.models import UserTable
 from src.models.types import RedisData
 from src.utils import validate
 

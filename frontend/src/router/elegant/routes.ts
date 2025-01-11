@@ -139,7 +139,7 @@ export const generatedRoutes: GeneratedRoute[] = [
     path: '/project',
     component: 'layout.home$view.project',
     meta: {
-      title: '项目',
+      title: '项目管理',
       homepage: true
     }
   },

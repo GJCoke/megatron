@@ -24,7 +24,7 @@ import DeviceCard from "./modules/device-card.vue"
           个设备
         </div>
       </template>
-      <div class="flex items-center gap-2 mt-2 mb-6">
+      <div class="mb-6 mt-2 flex items-center gap-2">
         <div class="w-300px">
           <NInput round placeholder="输入设备名称查询">
             <template #prefix>

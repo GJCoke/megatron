@@ -3,7 +3,7 @@
 # _description:
 
 from src.api.manage.types import Query
-from src.models.models import BaseNoCommonModel
+from src.models import BaseNoCommonModel
 
 
 class RouteMeta(BaseNoCommonModel):

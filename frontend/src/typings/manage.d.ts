@@ -26,29 +26,33 @@ declare namespace SystemManage {
   /** 所有角色的简化类型 */
   type AllRole = Pick<Role, "id" | "name" | "describe">
 
-  /** 用户类型 */
-  type User = Api.Common.CommonRecord<{
+  /** 简要的用户类型 */
+  type UserBriefInfo = Api.Common.CommonRecord<{
     /** 用户名称 */
     name: string
     /** 用户手机号 */
     mobile: string
     /** 用户邮箱 */
     email: string
+    /** 昵称 */
+    username: string
+    /** 头像 */
+    avatarUrl?: string | null
+  }>
+
+  /** 用户类型 */
+  type User = UserBriefInfo & {
     /** 用户角色 */
     roleId?: number | null
     /** 群组ID */
     affiliationId?: number | null
-    /** 头像 */
-    avatarUrl?: string | null
     /** 超管 */
     isAdmin: boolean
     /** 缓存信息 */
     resource?: object | null
     /** 权限信息 */
     roles: string[]
-    /** 昵称 */
-    username: string
-  }>
+  }
 
   type UserEdit = { id?: number } & Pick<
     User,

@@ -13,25 +13,22 @@ from src.api.auth.exceptions import AuthorizationFailed, WrongPassword
 from src.api.auth.security import check_password, hash_password
 from src.api.auth.service import decrypt_password
 from src.exceptions import BadData, DatabaseUniqueError
+from src.models.models import AffiliationTable, MenuTable, RoleTable, UserTable
 from src.models.types import Pagination
 
 from .models import (
     AffiliationCreate,
     AffiliationInfoResponse,
     AffiliationListResponse,
-    AffiliationTable,
     MenuCreate,
     MenuInfoResponse,
     MenuListResponse,
     MenuPermissionTreeResponse,
     MenuSimplifyListResponse,
-    MenuTable,
     RoleCreate,
     RoleInfoResponse,
-    RoleTable,
     UserCreate,
     UserResponse,
-    UserTable,
 )
 from .types import MENU_ROUTE, PERMISSION_BUTTONS, PERMISSION_INTERFACE, Query, SubPermission
 
@@ -194,7 +191,7 @@ async def get_user_list(
     """
     获取用户信息列表
 
-    分页获取用户信息, 并更具 `keyword` 进行关键字匹配
+    分页获取用户信息, 并根据 `keyword` 进行关键字匹配
 
     :param page: 当前页
     :param size: 每页的大小

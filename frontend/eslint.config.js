@@ -39,7 +39,8 @@ export default defineConfig(
           ignores: ["/^icon-/"]
         }
       ],
-      "unocss/order-attributify": "off"
+      "unocss/order-attributify": "off",
+      "vue/require-default-prop": "off"
     }
   }
 )

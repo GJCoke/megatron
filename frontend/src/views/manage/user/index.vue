@@ -12,23 +12,11 @@ function userSideRowClick(node: GroupTree) {
 </script>
 
 <template>
-  <div class="min-h-500px flex-col-stretch overflow-hidden lt-sm:overflow-auto">
-    <NLayout has-sider class="card-wrapper">
-      <NLayoutSider
-        :show-collapsed-content="false"
-        show-trigger="bar"
-        collapse-mode="transform"
-        :collapsed-width="12"
-        :native-scrollbar="false"
-        bordered
-        content-style="padding: 16px;"
-      >
-        <UserSideOperation @node-click="userSideRowClick" />
-      </NLayoutSider>
-      <NLayoutContent :native-scrollbar="false" content-style="padding: 20px;">
-        <UserContentOperation :node-id="nodeId" />
-      </NLayoutContent>
-    </NLayout>
+  <div class="flex-col-stretch gap-16px overflow-hidden lt-sm:overflow-auto">
+    <div class="h-full flex gap-2">
+      <UserSideOperation class="w-300px" @node-click="userSideRowClick" />
+      <UserContentOperation class="flex-1" :node-id="nodeId" />
+    </div>
   </div>
 </template>
 

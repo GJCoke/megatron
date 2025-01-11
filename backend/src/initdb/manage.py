@@ -5,8 +5,8 @@
 from sqlmodel import Session
 
 from src.api.auth.security import hash_password
-from src.api.manage.models import AffiliationTable, MenuTable, UserTable
 from src.api.manage.types import ICON_ICONIFY, MENU_DIRECTORY, MENU_ROUTE
+from src.models.models import AffiliationTable, MenuTable, ProjectTable, UserProjectLink, UserTable
 
 
 def menu(session: Session) -> None:
@@ -232,7 +232,38 @@ def user(session: Session) -> None:
         )
     ]
 
+    for item in range(11, 61):
+        users.append(UserTable(
+            name=f"超级管理员{item}",
+            username=f"SupperAdmin{item}",
+            email=f"admin{item}@gmail.cn",
+            mobile=f"188888888{item}",
+            password=hash_password("admin123"),
+            isAdmin=True,
+        ))
+
     session.add_all(users)
+    session.commit()
+
+    project = ProjectTable(name="霸天虎集团", driverType=1, visibility=1, describe="威震天霸凌擎天柱!!! ohh~")
+    project1 = ProjectTable(name="擎天柱集团", driverType=1, visibility=0, describe="威震天霸凌擎天柱!!! ohh~")
+    session.add_all([project, project1])
+    session.commit()
+
+    link = UserProjectLink(userId=users[0].id, projectId=project.id)
+
+    session.add(link)
+    session.commit()
+
+
+def project(session: Session) -> None:
+    project_list = []
+    for item in range(100):
+        project_list.append(
+            ProjectTable(name=f"霸天虎{item + 1}", driverType=1, visibility=0, describe=f"霸天虎 {item + 1} 号")
+        )
+
+    session.add_all(project_list)
     session.commit()
 
 
@@ -246,3 +277,4 @@ def manage(session: Session) -> None:
     menu(session)
     user(session)
     affiliation(session)
+    project(session)

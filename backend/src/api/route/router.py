@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends
 
 from src.api.auth.jwt import parse_jwt_user_data
 from src.api.auth.service import get_current_user_table
-from src.api.manage.models import UserTable
+from src.models.models import UserTable
 from src.models.types import ResponseModel
 
 from .models import RouteMenuTreeResponse

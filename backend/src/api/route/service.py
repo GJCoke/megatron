@@ -6,8 +6,9 @@ from sqlalchemy import ColumnElement
 from sqlmodel import or_, select
 
 from src import database
-from src.api.manage.models import MenuListResponse, MenuTable, UserTable
+from src.api.manage.models import MenuListResponse
 from src.api.manage.types import ICON_ICONIFY, ICON_LOCAL, MENU_DIRECTORY
+from src.models.models import MenuTable, UserTable
 
 from .models import RouteMenuTreeResponse, RouteMeta
 

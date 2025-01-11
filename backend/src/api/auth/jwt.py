@@ -14,8 +14,8 @@ from sqlmodel import select
 from src import database
 from src.api.auth.config import auth_config
 from src.api.auth.exceptions import AuthorizationFailed, AuthRequired, InvalidToken, RefreshTokenNotValid
-from src.api.manage.models import UserTable
 from src.config import settings
+from src.models.models import UserTable
 
 from .types import JWTData, JWTRefreshTokenData
 

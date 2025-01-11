@@ -7,8 +7,8 @@ import { useBoolean } from "~/packages/hooks"
 import SvgIcon from "@/components/custom/svg-icon.vue"
 import type { GroupTree } from "@/store/modules/affiliation"
 import { useAffiliationStore } from "@/store/modules/affiliation"
-import AffiliationOperateModal, { type OperateType } from "./affiliation-operate-modal.vue"
 import { useAuth } from "@/hooks/business/auth"
+import AffiliationOperateModal, { type OperateType } from "./affiliation-operate-modal.vue"
 
 defineOptions({
   name: "UserSideOperation"
@@ -162,45 +162,53 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
-    <div class="mb-2 flex items-center gap-2">
-      <NInput v-model:value="pattern" round placeholder="输入群组名称查询" size="small">
-        <template #prefix>
-          <SvgIcon icon="hugeicons:search-01" />
-        </template>
-      </NInput>
-      <NButton v-if="canAdd" type="primary" round ghost size="small" @click="handleAdd">
-        <template #icon>
-          <SvgIcon icon="material-symbols:add" />
-        </template>
-        添加
-      </NButton>
+  <div class="min-h-500px flex-col-stretch gap-8px overflow-hidden lt-sm:overflow-auto">
+    <NCard :bordered="false" size="small" class="card-wrapper">
+      <div class="flex items-center gap-2">
+        <NInput v-model:value="pattern" round placeholder="输入群组名称查询" size="small">
+          <template #prefix>
+            <SvgIcon icon="hugeicons:search-01" />
+          </template>
+        </NInput>
+        <NButton v-if="canAdd" type="primary" round ghost size="small" @click="handleAdd">
+          <template #icon>
+            <SvgIcon icon="material-symbols:add" />
+          </template>
+          添加
+        </NButton>
+      </div>
+    </NCard>
+    <div class="sm:flex-1-hidden card-wrapper bg-card-box">
+      <div class="h-full">
+        <NScrollbar class="p-16px">
+          <NSpin :show="affiliationStore.affiliationLoading">
+            <NTree
+              block-line
+              :data="affiliationStore.affiliationTree"
+              :pattern="pattern"
+              default-expand-all
+              :show-irrelevant-nodes="false"
+              :selectable="false"
+              :render-label="renderLabel"
+            >
+              <template #empty>
+                <NEmpty class="h-400px flex items-center justify-center" description="暂无分组，快去添加一个吧~">
+                  <template #extra>
+                    <NButton v-if="canAdd" quaternary size="small" type="primary" @click="handleAdd">添加分组</NButton>
+                  </template>
+                </NEmpty>
+              </template>
+            </NTree>
+          </NSpin>
+        </NScrollbar>
+      </div>
+      <AffiliationOperateModal
+        v-model:visible="visible"
+        :operate-type="operateType"
+        :row-data="editingData"
+        @submitted="affiliationStore.getUserAffiliationTree"
+      />
     </div>
-    <NSpin :show="affiliationStore.affiliationLoading">
-      <NTree
-        block-line
-        :data="affiliationStore.affiliationTree"
-        :pattern="pattern"
-        default-expand-all
-        :show-irrelevant-nodes="false"
-        :selectable="false"
-        :render-label="renderLabel"
-      >
-        <template #empty>
-          <NEmpty class="h-400px flex items-center justify-center" description="暂无分组，快去添加一个吧~">
-            <template #extra>
-              <NButton v-if="canAdd" quaternary size="small" type="primary" @click="handleAdd">添加分组</NButton>
-            </template>
-          </NEmpty>
-        </template>
-      </NTree>
-    </NSpin>
-    <AffiliationOperateModal
-      v-model:visible="visible"
-      :operate-type="operateType"
-      :row-data="editingData"
-      @submitted="affiliationStore.getUserAffiliationTree"
-    />
   </div>
 </template>
 

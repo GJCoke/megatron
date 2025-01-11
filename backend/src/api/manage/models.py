@@ -3,17 +3,11 @@
 # _description: 系统管理相关数据库响应模型
 
 from pydantic import Field as PydanticField
-from sqlmodel import JSON, Column, Field, Relationship
+from sqlmodel import JSON, Column, Field
 
-from src.models import BaseModel
+from src.models import BaseModel, GeneralBase
 
 from .types import ICON_ICONIFY, MENU_DIRECTORY, Query, SubPermission
-
-
-class GeneralBase(BaseModel):
-    """通用数据模型"""
-
-    name: str = Field(index=True, description="名称", schema_extra={"examples": ["name"]})  # 名称
 
 
 class IdentifierBase(GeneralBase):
@@ -34,15 +28,6 @@ class RoleBase(GeneralBase):
     interfaceCodes: list[str] = Field([], sa_column=Column(JSON), description="接口权限code列表")
 
 
-class RoleTable(RoleBase, table=True):
-    """角色数据库模型"""
-
-    __tablename__ = "test_role"
-    id: int | None = Field(None, primary_key=True, description="ID")
-
-    users: list["UserTable"] = Relationship(back_populates="role")
-
-
 class RoleCreate(RoleBase):
     """用于创建新的角色实例"""
 
@@ -57,15 +42,6 @@ class AffiliationBase(GeneralBase):
     """归属数据库表"""
 
     nodeId: int = Field(0, index=True, description="节点ID")  # 节点ID
-
-
-class AffiliationTable(AffiliationBase, table=True):
-    """人员归属数据库模型"""
-
-    __tablename__ = "test_affiliation"
-    id: int | None = Field(None, primary_key=True)
-
-    users: list["UserTable"] = Relationship(back_populates="affiliation")
 
 
 class AffiliationCreate(AffiliationBase):
@@ -97,14 +73,18 @@ class AffiliationListResponse(AffiliationBase):
     )
 
 
-class UserBase(BaseModel):
-    """用户数据模型"""
+class UserInfoBase(GeneralBase):
+    """用户基本信息实例"""
 
-    name: str = Field(index=True, description="用户名称")  # 名称
     username: str = Field(index=True, description="用户名称拼音")
     email: str = Field(index=True, unique=True, description="邮箱")  # 邮箱 不可重复
     mobile: str = Field(index=True, unique=True, description="手机号")  # 手机号 不可重复
     avatarUrl: str | None = Field(None, description="头像")  # 头像
+
+
+class UserBase(UserInfoBase):
+    """用户数据模型"""
+
     status: bool = Field(True, description="用户在职状态")  # 用户在职状态
     isAdmin: bool = Field(False, description="是否为超管")
     roleId: int | None = Field(None, foreign_key="test_role.id", description="角色ID")  # 角色ID
@@ -117,15 +97,6 @@ class UserPassword(UserBase):
     password: bytes  # 密码
 
 
-class UserTable(UserPassword, table=True):
-    """用户数据库模型"""
-
-    __tablename__ = "test_user"
-    id: int | None = Field(None, primary_key=True)
-    role: RoleTable | None = Relationship(back_populates="users")  # 角色信息
-    affiliation: AffiliationTable | None = Relationship(back_populates="users")
-
-
 class UserCreate(UserPassword):
     """用于创建新的实例"""
 
@@ -136,6 +107,12 @@ class UserResponse(UserBase):
     id: int
     resource: dict | None = None  # 用户的缓存资源
     roles: list[str] = []
+
+
+class BriefUserInfoResponse(UserInfoBase):
+    """简要的用户信息实例"""
+
+    id: int
 
 
 class RouteBase(BaseModel):
@@ -167,14 +144,6 @@ class MenuBase(RouteBase):
     query: list[Query] = Field([], sa_column=Column(JSON), description="进入路由时默认携带的参数")
     buttons: list[SubPermission] = Field([], sa_column=Column(JSON), description="按钮权限")
     interfaces: list[SubPermission] = Field([], sa_column=Column(JSON), description="接口权限")
-
-
-class MenuTable(MenuBase, table=True):
-    """菜单数据库模型"""
-
-    __tablename__ = "test_menu"
-
-    id: int | None = Field(None, primary_key=True, description="菜单ID")
 
 
 class MenuCreate(MenuBase):

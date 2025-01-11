@@ -59,7 +59,8 @@ export const themeSettings: App.Theme.ThemeSetting = {
         container: "rgb(255, 255, 255)",
         layout: "rgb(247, 250, 252)",
         inverted: "rgb(0, 20, 40)",
-        "base-text": "rgb(31, 31, 31)"
+        "base-text": "rgb(31, 31, 31)",
+        "card-box": "rgb(255, 255, 255)"
       },
       boxShadow: {
         header: "0 1px 2px rgb(0, 21, 41, 0.08)",
@@ -71,7 +72,8 @@ export const themeSettings: App.Theme.ThemeSetting = {
       colors: {
         container: "rgb(28, 28, 28)",
         layout: "rgb(18, 18, 18)",
-        "base-text": "rgb(224, 224, 224)"
+        "base-text": "rgb(224, 224, 224)",
+        "card-box": "rgb(24, 24, 28)"
       }
     }
   }

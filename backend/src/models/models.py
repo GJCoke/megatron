@@ -2,41 +2,63 @@
 # _date: 2024/7/28 00:56
 # _description: 基础数据库模型
 
-from datetime import datetime
+from sqlmodel import Field, Relationship
 
-from pydantic import ConfigDict, field_serializer
-from sqlmodel import Field, SQLModel
-
-from src.models.types import convert_datetime_to_gmt
-
-
-class BaseNoCommonModel(SQLModel):
-    """没有任何定义的基础模型"""
-
-    model_config = ConfigDict(
-        from_attributes=True,
-        populate_by_name=True,
-        arbitrary_types_allowed=True,  # 允许使用字符串类型前向引用, 即递归调用
-    )  # type: ignore
+from src.api.business.models import ProjectBase
+from src.api.manage.models import AffiliationBase, MenuBase, RoleBase, UserPassword
+from src.models import BaseNoCommonModel
 
 
-class BaseModel(BaseNoCommonModel):
-    """基础模型"""
+class RoleTable(RoleBase, table=True):
+    """角色数据库模型"""
 
-    # 应该使用 default_factory=datetime.now 来生成默认时间, 当时没有找到格式化的方法
-    createTime: datetime = Field(
-        default_factory=datetime.now, description="创建时间", schema_extra={"examples": ["2024-07-31 16:07:34"]}
-    )  # 记录的创建时间
-    updateTime: datetime = Field(
-        default_factory=datetime.now, description="更新时间", schema_extra={"examples": ["2024-07-31 16:07:34"]}
-    )  # 记录的更新时间
+    __tablename__ = "test_role"
 
-    @field_serializer("createTime", "updateTime")
-    def serialize_datetime(self, value: datetime) -> str:
-        """
-        将 datetime 对象转换为 GMT 格式的字符串
+    id: int | None = Field(None, primary_key=True, description="ID")
+    users: list["UserTable"] = Relationship(back_populates="role")
 
-        :param value: datetime 对象
-        :return:
-        """
-        return convert_datetime_to_gmt(value)
+
+class AffiliationTable(AffiliationBase, table=True):
+    """人员归属数据库模型"""
+
+    __tablename__ = "test_affiliation"
+
+    id: int | None = Field(None, primary_key=True)
+    users: list["UserTable"] = Relationship(back_populates="affiliation")
+
+
+class UserProjectLink(BaseNoCommonModel, table=True):
+    """项目和用户之间的中间表"""
+
+    __tablename__ = "user_project_link"
+
+    userId: int = Field(foreign_key="test_user.id", primary_key=True)
+    projectId: int = Field(foreign_key="test_project.id", primary_key=True)
+
+
+class UserTable(UserPassword, table=True):
+    """用户数据库模型"""
+
+    __tablename__ = "test_user"
+
+    id: int | None = Field(None, primary_key=True)
+    role: RoleTable | None = Relationship(back_populates="users")  # 角色信息
+    affiliation: AffiliationTable | None = Relationship(back_populates="users")
+    projects: list["ProjectTable"] = Relationship(back_populates="users", link_model=UserProjectLink)
+
+
+class MenuTable(MenuBase, table=True):
+    """菜单数据库模型"""
+
+    __tablename__ = "test_menu"
+
+    id: int | None = Field(None, primary_key=True, description="菜单ID")
+
+
+class ProjectTable(ProjectBase, table=True):
+    """项目数据库模型"""
+
+    __tablename__ = "test_project"
+
+    id: int | None = Field(None, primary_key=True, description="ID")
+    users: list["UserTable"] = Relationship(back_populates="projects", link_model=UserProjectLink)

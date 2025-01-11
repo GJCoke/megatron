@@ -4,6 +4,7 @@ import type { VNode } from "vue"
 import { useAuthStore } from "@/store/modules/auth"
 import { useRouterPush } from "@/hooks/common/router"
 import { useSvgIcon } from "@/hooks/common/icon"
+import UserCommonAvatar from "@/components/common/user-common-avatar.vue"
 
 defineOptions({
   name: "UserAvatar"
@@ -69,7 +70,7 @@ function handleDropdown(key: DropdownKey) {
   <NDropdown v-else placement="bottom" trigger="click" :options="options" @select="handleDropdown">
     <div>
       <ButtonIcon>
-        <SvgIcon icon="ph:user-circle" class="text-icon-large" />
+        <UserCommonAvatar :size="24" :username="authStore.userInfo.name" :src="authStore.userInfo.avatarUrl" />
         <span class="text-16px font-medium">{{ authStore.userInfo.name }}</span>
       </ButtonIcon>
     </div>

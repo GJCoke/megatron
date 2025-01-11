@@ -137,6 +137,7 @@ declare namespace App {
       layout: string
       inverted: string
       "base-text": string
+      "card-box": string
     }
 
     interface ThemeSettingTokenBoxShadow {

@@ -92,9 +92,20 @@ def menu(session: Session) -> None:
         routePath="/manage",
         iconType=ICON_ICONIFY,
         icon="carbon:cloud-service-management",
+        order=2
     )
 
-    parent_menu = [_manage]
+    _project = MenuTable(
+        component="layout.home$view.project",
+        menuName="项目管理",
+        menuType=MENU_ROUTE,
+        routeName="project",
+        routePath="/project",
+        iconType=ICON_ICONIFY,
+        icon="si:projects-line",
+    )
+
+    parent_menu = [_manage, _project]
 
     session.add_all(constant_menus + parent_menu)
     session.commit()
@@ -232,15 +243,17 @@ def user(session: Session) -> None:
         )
     ]
 
-    for item in range(11, 61):
-        users.append(UserTable(
-            name=f"超级管理员{item}",
-            username=f"SupperAdmin{item}",
-            email=f"admin{item}@gmail.cn",
-            mobile=f"188888888{item}",
-            password=hash_password("admin123"),
-            isAdmin=True,
-        ))
+    # for item in range(11, 61):
+    #     users.append(
+    #         UserTable(
+    #             name=f"超级管理员{item}",
+    #             username=f"SupperAdmin{item}",
+    #             email=f"admin{item}@gmail.cn",
+    #             mobile=f"188888888{item}",
+    #             password=hash_password("admin123"),
+    #             isAdmin=True,
+    #         )
+    #     )
 
     session.add_all(users)
     session.commit()
@@ -257,14 +270,15 @@ def user(session: Session) -> None:
 
 
 def project(session: Session) -> None:
-    project_list = []
-    for item in range(100):
-        project_list.append(
-            ProjectTable(name=f"霸天虎{item + 1}", driverType=1, visibility=0, describe=f"霸天虎 {item + 1} 号")
-        )
-
-    session.add_all(project_list)
-    session.commit()
+    pass
+    # project_list = []
+    # for item in range(100):
+    #     project_list.append(
+    #         ProjectTable(name=f"霸天虎{item + 1}", driverType=1, visibility=0, describe=f"霸天虎 {item + 1} 号")
+    #     )
+    #
+    # session.add_all(project_list)
+    # session.commit()
 
 
 def manage(session: Session) -> None:

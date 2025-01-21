@@ -3,6 +3,12 @@ defineOptions({
   name: "ProjectHeaderOperation"
 })
 
+interface Props {
+  total: number
+}
+
+defineProps<Props>()
+
 interface Emits {
   (e: "reset"): void
   (e: "search"): void
@@ -59,7 +65,7 @@ function add() {
       <div class="flex items-center gap-24px">
         <div>
           共
-          <span class="text-lg text-primary font-bold">20</span>
+          <span class="text-lg text-primary font-bold">{{ total }}</span>
           个项目
         </div>
         <NButton type="primary" @click="add">

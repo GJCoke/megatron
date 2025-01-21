@@ -1,6 +1,7 @@
 <script setup lang="tsx">
 import { computed, ref } from "vue"
 import SvgIcon from "@/components/custom/svg-icon.vue"
+import { driverTypeRecord } from "@/constants/business"
 
 defineOptions({
   name: "ProjectOperateCard"
@@ -10,13 +11,20 @@ type UserBriefInfo = SystemManage.UserBriefInfo & { color?: string }
 
 interface Props {
   name: string
-  driverType: string
+  driverType: SystemProject.DriverType
   describe?: string | null
   createTime: string
   users: UserBriefInfo[]
 }
 
 const props = defineProps<Props>()
+
+interface Emits {
+  (e: "edit"): void
+  (e: "delete"): void
+}
+
+const emit = defineEmits<Emits>()
 
 const UserAvatar = computed(() => {
   if (props.users.length > 5) {
@@ -32,12 +40,18 @@ const dropdownOptions = [
   {
     label: () => <span class="text-warning">编辑</span>,
     key: "edit",
-    icon: () => <SvgIcon icon="material-symbols:edit-square-outline" class="text-16px color-warning" />
+    icon: () => <SvgIcon icon="material-symbols:edit-square-outline" class="text-16px color-warning" />,
+    props: {
+      onClick: () => emit("edit")
+    }
   },
   {
     label: () => <span class="text-error">删除</span>,
     key: "delete",
-    icon: () => <SvgIcon icon="material-symbols:delete-outline-sharp" class="text-16px color-error" />
+    icon: () => <SvgIcon icon="material-symbols:delete-outline-sharp" class="text-16px color-error" />,
+    props: {
+      onClick: () => emit("delete")
+    }
   }
 ]
 
@@ -64,12 +78,12 @@ function setDropdownVisible(show: boolean) {
         :options="dropdownOptions"
         @update:show="setDropdownVisible"
       >
-        <NButton quaternary circle size="small" type="primary">
+        <NButton quaternary circle size="small" type="primary" @click.stop>
           <SvgIcon icon="ic:outline-more-horiz" />
         </NButton>
       </NDropdown>
     </div>
-    <div class="text-base-text">- {{ driverType }}</div>
+    <div class="text-base-text">- {{ driverTypeRecord[driverType] }}</div>
     <NEllipsis class="h-60px text-base-text" :line-clamp="3" :tooltip="false">{{ describe }}</NEllipsis>
     <div class="h-40px flex gap-1">
       <div v-for="item in UserAvatar" :key="item.id">

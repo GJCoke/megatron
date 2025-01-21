@@ -45,4 +45,4 @@ class BaseModel(BaseNoCommonModel):
 class GeneralBase(BaseModel):
     """通用数据模型"""
 
-    name: str = Field(index=True, description="名称", schema_extra={"examples": ["name"]})  # 名称
+    name: str = Field(index=True, unique=True, description="名称", schema_extra={"examples": ["name"]})  # 名称

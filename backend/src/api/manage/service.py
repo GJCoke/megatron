@@ -186,7 +186,13 @@ async def get_related_affiliations_by_node_id(node_id: int) -> list[int]:
 
 
 async def get_user_list(
-    page: int, size: int, *, keyword: str = "", status: bool | None = None, affiliation_id: int | None = None
+    page: int,
+    size: int,
+    *,
+    keyword: str = "",
+    status: bool | None = None,
+    affiliation_id: int | None = None,
+    user_ids: list[int] | None = None,
 ) -> Pagination[list[UserResponse]]:
     """
     获取用户信息列表
@@ -219,6 +225,9 @@ async def get_user_list(
         affiliation_list = await get_related_affiliations_by_node_id(affiliation_id)
         affiliation_list.append(affiliation_id)
         clause.append(or_(*[UserTable.affiliationId == _id for _id in affiliation_list]))
+
+    if user_ids:
+        clause.append(or_(*[UserTable.id == _id for _id in user_ids]))
 
     user_pagination = await database.pagination(
         select(UserTable).where(*clause),

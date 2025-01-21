@@ -59,6 +59,7 @@ class AuthGetUserListRequest(GeneralKeywordPageRequestModel):
 
     status: bool | None = Body(None, description="用户状态查询")
     affiliationId: int | None = Body(None, description="用户所属群组")
+    userIds: list[int] | None = Body(None, description="指定的用户信息")
 
 
 class AuthEditRoleRequest(CustomModel):

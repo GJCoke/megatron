@@ -131,7 +131,12 @@ async def user_list(body: AuthGetUserListRequest) -> ResponseModel[Pagination[li
     :return: 包含用户列表的 <UserResponse> 对象
     """
     user = await get_user_list(
-        body.page, body.pageSize, keyword=body.keyword, status=body.status, affiliation_id=body.affiliationId
+        body.page,
+        body.pageSize,
+        keyword=body.keyword,
+        status=body.status,
+        affiliation_id=body.affiliationId,
+        user_ids=body.userIds,
     )
     return ResponseModel(data=user)
 

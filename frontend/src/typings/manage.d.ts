@@ -63,7 +63,7 @@ declare namespace SystemManage {
 
   /** 用户搜索参数 */
   type UserSearchParams = CommonType.RecordNullable<
-    Pick<User, "status" | "affiliationId"> & Api.Common.KeywordSearchParams
+    Pick<User, "status" | "affiliationId"> & Api.Common.KeywordSearchParams & { userIds?: number[] }
   >
 
   /** 用户列表 */

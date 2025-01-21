@@ -33,12 +33,10 @@ const randomColor = computed(() => {
 </script>
 
 <template>
-  <div>
-    <NAvatar v-if="src" round :src="src" :size="size" />
-    <NAvatar v-else round :color="color || randomColor" :size="size">
-      <div class="p-2">{{ displayUsername }}</div>
-    </NAvatar>
-  </div>
+  <NAvatar v-if="src" round :src="src" :size="size" />
+  <NAvatar v-else round :color="color || randomColor" :size="size">
+    <div class="p-2">{{ displayUsername }}</div>
+  </NAvatar>
 </template>
 
 <style scoped></style>

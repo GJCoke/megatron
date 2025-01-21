@@ -21,6 +21,16 @@ export const menuTypeRecord: Record<SystemManage.MenuType, string> = {
   2: "菜单"
 }
 
+export const driverTypeRecord: Record<SystemProject.DriverType, string> = {
+  1: "Selenium",
+  2: "Appium"
+}
+
+export const visibilityRecord: Record<SystemProject.Visibility, string> = {
+  0: "公开",
+  1: "私有"
+}
+
 export const menuTypeOptions = transformRecordToOption(menuTypeRecord)
 
 export const menuIconTypeRecord: Record<SystemManage.IconType, string> = {
@@ -29,3 +39,7 @@ export const menuIconTypeRecord: Record<SystemManage.IconType, string> = {
 }
 
 export const menuIconTypeOptions = transformRecordToOption(menuIconTypeRecord)
+
+export const driverTypeOptions = transformRecordToOption(driverTypeRecord)
+
+export const visibilityOptions = transformRecordToOption(visibilityRecord)

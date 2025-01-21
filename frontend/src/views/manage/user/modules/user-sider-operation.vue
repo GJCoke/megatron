@@ -1,7 +1,7 @@
 <script setup lang="tsx">
 import type { TreeOption } from "naive-ui"
 import { NButton, NDropdown, useDialog } from "naive-ui"
-import { type Ref, onMounted, ref } from "vue"
+import { onMounted, ref } from "vue"
 import { deleteAffiliationInfo } from "@/service/api"
 import { useBoolean } from "~/packages/hooks"
 import SvgIcon from "@/components/custom/svg-icon.vue"
@@ -25,7 +25,7 @@ const canEdit = hasAuth("manage.affiliation.edit")
 const canDelete = hasAuth("manage.affiliation.delete")
 
 const operateType = ref<OperateType>("add")
-const editingData: Ref<SystemManage.AffiliationEdit | null> = ref(null)
+const editingData = ref<SystemManage.AffiliationEdit | null>(null)
 
 interface Emits {
   (e: "nodeClick", node: GroupTree): void
